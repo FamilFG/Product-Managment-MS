@@ -7,7 +7,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,9 +23,7 @@ import java.util.List;
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final String secretKey = "a-very-long-256-bit-secret-key-which-is-at-least-32-bytes-long";
-    @Value("${jwt.access-token.secret}")
-    private String secret;
+    private final String secret = "a-very-long-256-bit-secret-key-which-is-at-least-32-bytes-long";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -35,39 +32,45 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
+
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = header.substring(7);
 
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            String token = header.substring(7);
 
-        String username = claims.get("userName", String.class);
-        String role = claims.get("role", String.class);
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
+            String username = claims.get("userName", String.class);
+            String role = claims.get("role", String.class);
 
-        GrantedAuthority authority =
-                new SimpleGrantedAuthority("ROLE_" + role);
+            if (username != null && role != null) {
+                GrantedAuthority authority =
+                        new SimpleGrantedAuthority("ROLE_" + role);
 
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        List.of(authority)
-                );
+                Authentication authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                List.of(authority)
+                        );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+        }
+
         filterChain.doFilter(request, response);
     }
-
 }
-
-
