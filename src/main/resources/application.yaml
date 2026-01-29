@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: product-ms
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/productdb
+    username: root
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    database-change-log-table: DATABASECHANGELOG
+    database-change-log-lock-table: DATABASECHANGELOGLOCK
+
+server:
+  port: 8082
+  servlet:
+    context-path: /product-ms
+jwt:
+  access-token:
+    secret: "a-very-long-256-bit-secret-key-which-is-at-least-32-bytes-long"
