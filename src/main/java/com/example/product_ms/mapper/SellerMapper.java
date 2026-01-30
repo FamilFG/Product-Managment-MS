@@ -10,9 +10,13 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface SellerMapper {
+
     @Mapping(target = "userName", source = "userName")
     ProductEntity mapProductDtoToProductEntity(CreateProductReqDto createProductReqDto, String userName);
+
+
     void mapUpdateProductDtoToProductEntity(UpdateProductReqDto updateProductReqDto, @MappingTarget ProductEntity productEntity);
 }
+
 
 

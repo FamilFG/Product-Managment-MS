@@ -29,7 +29,6 @@ public class SellerServiceImpl implements SellerService {
         Authentication auth =
                 SecurityContextHolder.getContext().getAuthentication();
         String userName = auth.getName();
-
         var mapper = sellerMapper
                 .mapProductDtoToProductEntity(createProductReqDto, userName);
         productRepository.save(mapper);
@@ -40,13 +39,10 @@ public class SellerServiceImpl implements SellerService {
     public void deleteProducts(String id) {
         Authentication auth =
                 SecurityContextHolder.getContext().getAuthentication();
-
         ProductEntity productEntity =
                 productRepository.findByProductId(id).orElseThrow(() -> new ProductNotFound("Product not found"));
-
         if (productEntity.getUserName().equals(auth.getName())) {
             productRepository.delete(productEntity);
-
         } else {
             throw new SellerNotOwnerOfProductException("Seller cannot delete product");
         }
@@ -58,16 +54,11 @@ public class SellerServiceImpl implements SellerService {
 
         Authentication auth =
                 SecurityContextHolder.getContext().getAuthentication();
-
         String userName = auth.getName();
-
         ProductEntity productEntity =
                 productRepository.findByProductId(id).orElseThrow(() -> new ProductNotFound("Product not found"));
-
         if (productEntity.getUserName().equals(userName)) {
-
             sellerMapper.mapUpdateProductDtoToProductEntity(updateProductReqDto, productEntity);
-
             productRepository.save(productEntity);
         } else {
             throw new SellerNotOwnerOfProductException("Seller not found");
